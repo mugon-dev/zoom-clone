@@ -1,3 +1,5 @@
+import http from "http";
+import WebSocket from "ws";
 import express from "express";
 const app = express();
 
@@ -15,4 +17,12 @@ app.get("/", (req,res) => res.render("home"));
 app.get("/*",(req, res) => res.redirect("/"));
 
 const handelListen = () => console.log(`Listening on http://localhost:3000`);
-app.listen(3000,handelListen);
+// express 방식
+// app.listen(3000,handelListen);
+
+// node에 내장된 서버 사용
+const server = http.createServer(app);
+// WebSocket 사용 : http, websocket 서버 둘다 같은 port에서 작동
+const wss = new WebSocket.Server({server});
+
+server.listen(3000,handelListen);
