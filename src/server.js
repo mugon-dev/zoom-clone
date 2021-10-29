@@ -24,5 +24,11 @@ const handelListen = () => console.log(`Listening on http://localhost:3000`);
 const server = http.createServer(app);
 // WebSocket 사용 : http, websocket 서버 둘다 같은 port에서 작동
 const wss = new WebSocket.Server({server});
+function handleConnection(socket){
+    console.log(socket);
+}
+// on method에서는 event(connection)가 발동하는 것을 기다림
+// socket에는 연결된 사람의 정보를 가져옴
+wss.on("connection", handleConnection);
 
 server.listen(3000,handelListen);
