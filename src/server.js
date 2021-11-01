@@ -43,6 +43,12 @@ function publicRooms() {
   return publicRooms;
 }
 
+// 방에 참가한 유저 수
+function countRoom(roomName) {
+  // roomName을 못찾을 수도 있기에 ? 추가
+  return wsServer.sockets.adapter.rooms.get(roomName)?.size;
+}
+
 wsServer.on("connection", (socket) => {
   // middleware
   // socket에 있는 모든 event를 살핌
@@ -58,7 +64,7 @@ wsServer.on("connection", (socket) => {
     socket.join(roomName);
     done();
     // "welcome"이벤트를 roomName에 있는 모든 사람들에게 emit
-    socket.to(roomName).emit("welcome", socket.nickname);
+    socket.to(roomName).emit("welcome", socket.nickname, countRoom(roomName));
 
     // 새로운 방이 만들어 졌다고 연결된 모든 socket에게 알려주기
     wsServer.sockets.emit("room_change", publicRooms());
@@ -66,7 +72,8 @@ wsServer.on("connection", (socket) => {
     // 접속은 끊겼지만 완전히 나가지 않은 상태
     socket.on("disconnecting", () => {
       socket.rooms.forEach((room) =>
-        socket.io(room).emit("bye", socket.nickname)
+        // disconnecting는 아직 완전히 떠나지 않았기 때문에 countRoom(roomName)에 -1
+        socket.io(room).emit("bye", socket.nickname, countRoom(room) - 1)
       );
     });
     socket.on("disconnect", () => {
