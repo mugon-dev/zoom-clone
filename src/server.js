@@ -17,7 +17,6 @@ app.get("/", (req, res) => res.render("home"));
 // 어떤 url을 입력하던지 home("/")으로 이동
 app.get("/*", (req, res) => res.redirect("/"));
 
-
 // express 방식
 // app.listen(3000,handelListen);
 
@@ -25,11 +24,22 @@ app.get("/*", (req, res) => res.redirect("/"));
 const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
-wsServer.on("connection", socket => {
-    console.log(socket);
+wsServer.on("connection", (socket) => {
+  // middleware
+  // socket에 있는 모든 event를 살핌
+  socket.onAny((event) => {
+    console.log(`Socket Event: ${event}`);
+  });
+  // msg : front에서 보내주는 json data
+  // done : front에서 보내는 함수 (backend에서 실행)
+  socket.on("enter_room", (roomName, done) => {
+    // room에 참가
+    socket.join(roomName);
+    done();
+    // "welcome"이벤트를 roomName에 있는 모든 사람들에게 emit
+    socket.to(roomName).emit("welcome");
+  });
 });
 
-
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
-httpServer
-    .listen(3000, handleListen);
+httpServer.listen(3000, handleListen);
