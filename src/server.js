@@ -33,11 +33,25 @@ wsServer.on("connection", (socket) => {
   // msg : front에서 보내주는 json data
   // done : front에서 보내는 함수 (backend에서 실행)
   socket.on("enter_room", (roomName, done) => {
+    // 닉네임 초기화
+    socket["nickname"] = "Anon";
     // room에 참가
     socket.join(roomName);
     done();
     // "welcome"이벤트를 roomName에 있는 모든 사람들에게 emit
-    socket.to(roomName).emit("welcome");
+    socket.to(roomName).emit("welcome", socket.nickname);
+    // 접속은 끊겼지만 완전히 나가지 않은 상태
+    socket.on("disconnecting", () => {
+      socket.rooms.forEach((room) =>
+        socket.io(room).emit("bye", socket.nickname)
+      );
+    });
+    socket.on("new_message", (msg, room, done) => {
+      socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
+      done();
+    });
+    // 닉네임 생성
+    socket.on("nickname", (nickname) => (socket["nickname"] = nickname));
   });
 });
 
