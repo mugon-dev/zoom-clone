@@ -1,7 +1,8 @@
 import http from "http";
-import SocketIO from "socket.io";
+// import SocketIO from "socket.io";
+const { Server } = require("socket.io");
 import express from "express";
-
+const { instrument } = require("@socket.io/admin-ui");
 const app = express();
 
 // view 엔진 설정
@@ -22,7 +23,15 @@ app.get("/*", (req, res) => res.redirect("/"));
 
 // node에 내장된 서버 사용
 const httpServer = http.createServer(app);
-const wsServer = SocketIO(httpServer);
+const wsServer = new Server(httpServer, {
+  cors: {
+    origin: ["https://admin.socket.io"],
+    credentials: true
+  }
+});
+instrument(wsServer, {
+  auth: false
+});
 
 // public room 가져오기
 function publicRooms() {
